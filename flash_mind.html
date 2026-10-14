@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="pt-BR"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mente Flash</title>
+<style>
+:root{--pri:#7c5cff;--acc:#22d3ee;--ok:#34d399;--bad:#fb7185;--txt:#eef2ff;--mut:#9aa4c7;--glass:rgba(255,255,255,.07);--bd:rgba(255,255,255,.15);color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+[hidden]{display:none!important}
+html,body{margin:0;min-height:100%}
+body{min-height:100dvh;color:var(--txt);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:radial-gradient(900px 500px at 15% -10%,#3b2a8f55,transparent),radial-gradient(800px 500px at 100% 100%,#0e7490466,transparent),#0b1020}
+.screen{display:none;flex-direction:column;align-items:center;min-height:100dvh;padding:18px 14px 28px;gap:14px}
+.screen.on{display:flex}
+h1{margin:6px 0 0;font-size:clamp(2.2rem,9vw,3.8rem);letter-spacing:.06em;font-weight:900}
+h1 span{background:linear-gradient(90deg,var(--acc),var(--pri));-webkit-background-clip:text;background-clip:text;color:transparent}
+.logo{font-size:4rem;filter:drop-shadow(0 0 22px var(--pri));animation:fl 3s ease-in-out infinite}
+.sub{color:var(--mut);margin:0 0 8px;text-align:center}
+.modes{display:grid;gap:12px;width:100%;max-width:460px}
+.mode{display:flex;gap:14px;align-items:center;text-align:left;padding:16px;border-radius:18px;border:1px solid var(--bd);background:var(--glass);color:var(--txt);cursor:pointer;backdrop-filter:blur(8px);transition:.2s;font:inherit}
+.mode:hover{transform:translateY(-3px);border-color:var(--acc);box-shadow:0 8px 30px #22d3ee22}
+.mode i{font-style:normal;font-size:2.2rem}
+.mode b{display:block;font-size:1.1rem}.mode small{color:var(--mut);display:block;margin-top:2px}
+.mode em{margin-left:auto;font-style:normal;font-size:.75rem;color:var(--acc);text-align:right;white-space:nowrap}
+.ghost,.btn{font:inherit;border-radius:12px;cursor:pointer;color:var(--txt);transition:.2s}
+.ghost{background:var(--glass);border:1px solid var(--bd);padding:9px 14px}
+.ghost:hover{border-color:var(--acc)}
+.btn{background:linear-gradient(135deg,var(--pri),#4f46e5);border:0;padding:14px 34px;font-weight:700;font-size:1.05rem;box-shadow:0 8px 24px #7c5cff55}
+.btn:hover{transform:translateY(-2px)}
+.hud{width:100%;max-width:640px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:space-between;padding:10px 12px;border-radius:18px;background:var(--glass);border:1px solid var(--bd);backdrop-filter:blur(8px)}
+.title{font-weight:800;color:var(--acc)}
+.stats{display:flex;gap:16px}.stats div{text-align:center;min-width:48px}
+.stats small{display:block;font-size:.62rem;letter-spacing:.12em;color:var(--mut)}.stats b{font-size:1.15rem}
+.barw{width:100%;max-width:640px;height:8px;border-radius:9px;background:var(--glass);overflow:hidden}
+.barw i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--acc),var(--pri))}
+#msg{min-height:1.6em;font-weight:700;font-size:1.1rem;text-align:center}
+.board{display:grid;gap:10px;width:100%;margin:0 auto}
+.card{aspect-ratio:3/4;perspective:700px;cursor:pointer;animation:pop .4s both}
+.in{position:relative;width:100%;height:100%;transition:transform .5s;transform-style:preserve-3d}
+.up .in{transform:rotateY(180deg)}
+.f{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px}
+.bk{background:linear-gradient(135deg,var(--pri),#4338ca);border:1px solid var(--bd);font-size:2rem;font-weight:800;color:#ffffff66;box-shadow:0 6px 18px #0006}
+.card:hover .bk{filter:brightness(1.2)}
+.ft{transform:rotateY(180deg);background:linear-gradient(160deg,#fff,#dfe3ff);color:#1b1040;box-shadow:0 6px 18px #0006}
+.ft b{font-size:clamp(1.8rem,8vw,2.8rem)}.ft small{font-size:.68rem;font-weight:700}
+.ok .ft{box-shadow:0 0 0 3px var(--ok),0 0 26px var(--ok)}
+.no .ft{box-shadow:0 0 0 3px var(--bad),0 0 26px var(--bad)}
+.shake .card{animation:shk .3s infinite}.shake .card:nth-child(odd){animation-direction:reverse}
+.words{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;max-width:640px}
+.chip{font:inherit;font-weight:600;padding:11px 18px;border-radius:999px;border:1px solid var(--bd);background:var(--glass);color:var(--txt);cursor:pointer;transition:.15s}
+.chip:hover{border-color:var(--acc)}
+.chip.sel{background:var(--pri);border-color:var(--pri);box-shadow:0 0 18px #7c5cff88}
+.chip.ok{background:var(--ok);border-color:var(--ok);color:#052e1f}
+.chip.no{background:var(--bad);border-color:var(--bad);color:#4c0519}
+.chip.miss{border:2px dashed var(--ok)}
+/* --- novidades: caixa de pergunta e campo de resposta --- */
+.qbox{width:100%;max-width:640px;min-height:1.4em;padding:30px 16px;border-radius:22px;background:var(--glass);border:1px solid var(--bd);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;text-align:center;font-weight:900;font-size:clamp(2rem,10vw,3.4rem);letter-spacing:.08em;word-break:break-all;animation:pop .35s both}
+.qbox.num{color:var(--acc);text-shadow:0 0 30px #22d3ee66}
+.answer{width:100%;max-width:430px;display:flex;gap:10px;animation:pop .3s both}
+.answer input{flex:1;min-width:0;font:inherit;font-size:1.5rem;font-weight:800;text-align:center;letter-spacing:.1em;padding:13px 14px;border-radius:14px;border:1px solid var(--bd);background:var(--glass);color:var(--txt);outline:none;transition:.2s}
+.answer input:focus{border-color:var(--acc);box-shadow:0 0 0 3px #22d3ee33}
+.answer input::placeholder{color:var(--mut);font-weight:600;letter-spacing:0;font-size:1rem}
+.answer .btn{padding:13px 22px;font-size:1rem}
+.panel{margin-top:6vh;text-align:center;padding:30px 26px;border-radius:24px;background:var(--glass);border:1px solid var(--bd);backdrop-filter:blur(10px);max-width:420px;width:100%;display:flex;flex-direction:column;gap:12px;align-items:center}
+.panel h2{margin:0;font-size:2rem}.big{font-size:3.2rem;font-weight:900;color:var(--acc)}
+@keyframes pop{from{opacity:0;transform:scale(.7)}to{opacity:1;transform:none}}
+@keyframes fl{50%{transform:translateY(-8px)}}
+@keyframes shk{0%{transform:rotate(-4deg) translateY(-3px)}100%{transform:rotate(4deg) translateY(3px)}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important}}
+</style></head><body>
+
+<div id="menu" class="screen on">
+  <div class="logo">🧠</div>
+  <h1>MENTE <span>FLASH</span></h1>
+  <p class="sub">Treine sua memória visual. Escolha um modo:</p>
+  <div class="modes">
+    <button class="mode" data-m="pairs"><i>🃏</i><div><b>Pares</b><small>Memorize as cartas e encontre os pares.</small></div><em id="b-pairs"></em></button>
+    <button class="mode" data-m="recall"><i>📝</i><div><b>Quem estava lá?</b><small>Veja os objetos e marque na lista de palavras.</small></div><em id="b-recall"></em></button>
+    <button class="mode" data-m="imp"><i>🕵️</i><div><b>A Impostora</b><small>As cartas embaralham e uma foi trocada. Qual é?</small></div><em id="b-imp"></em></button>
+    <button class="mode" data-m="numbers"><i>🔢</i><div><b>Números</b><small>Memorize o número e digite-o depois.</small></div><em id="b-numbers"></em></button>
+    <button class="mode" data-m="math"><i>➗</i><div><b>Cálculo Relâmpago</b><small>Resolva a conta antes do tempo acabar.</small></div><em id="b-math"></em></button>
+  </div>
+  <button class="ghost" id="mt">🔊 Som: ligado</button>
+</div>
+
+<div id="game" class="screen">
+  <header class="hud">
+    <button class="ghost" id="back">← Menu</button>
+    <div class="title" id="ttl"></div>
+    <div class="stats">
+      <div><small>NÍVEL</small><b id="lv">1</b></div>
+      <div><small>PONTOS</small><b id="sc">0</b></div>
+      <div><small id="l3">VIDAS</small><b id="lf"></b></div>
+    </div>
+  </header>
+  <div class="barw"><i id="bar"></i></div>
+  <div id="msg"></div>
+  <main id="board" class="board"></main>
+  <div id="qbox" class="qbox" hidden></div>
+  <div id="words" class="words" hidden></div>
+  <div id="answer" class="answer" hidden>
+    <input id="ans" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off"
+           autocapitalize="off" spellcheck="false" enterkeyhint="go" placeholder="Digite o número">
+    <button class="btn" id="ansGo">Enviar</button>
+  </div>
+  <button id="go" class="btn" hidden>Confirmar</button>
+</div>
+
+<div id="end" class="screen">
+  <div class="panel">
+    <div style="font-size:3rem">🏁</div>
+    <h2>Fim de jogo</h2>
+    <div class="big" id="es">0</div>
+    <div id="ei" style="color:var(--mut)"></div>
+    <button class="btn" id="again">Jogar de novo</button>
+    <button class="ghost" id="tomenu">Menu principal</button>
+  </div>
+</div>
+
+<script>
+const P=[["🍎","Maçã"],["🍌","Banana"],["🍇","Uva"],["🍓","Morango"],["🍉","Melancia"],["🍍","Abacaxi"],["🥕","Cenoura"],["🍕","Pizza"],["🍔","Hambúrguer"],["🍩","Rosquinha"],["⚽","Bola"],["🎸","Guitarra"],["🎧","Fone"],["📷","Câmera"],["⏰","Despertador"],["🔑","Chave"],["💡","Lâmpada"],["📚","Livros"],["✏️","Lápis"],["🎈","Balão"],["🚗","Carro"],["🚲","Bicicleta"],["✈️","Avião"],["🚀","Foguete"],["⛵","Barco"],["🐶","Cachorro"],["🐱","Gato"],["🐢","Tartaruga"],["🦋","Borboleta"],["🐙","Polvo"],["🦊","Raposa"],["🐸","Sapo"],["🌵","Cacto"],["🌻","Girassol"],["🍄","Cogumelo"],["⭐","Estrela"],["🌙","Lua"],["🔥","Fogo"],["👑","Coroa"],["💎","Diamante"],["🎲","Dado"],["🧲","Ímã"],["🔔","Sino"],["☂️","Guarda-chuva"]];
+const NAMES={pairs:"🃏 Pares",recall:"📝 Quem estava lá?",imp:"🕵️ A Impostora",numbers:"🔢 Números",math:"➗ Cálculo Relâmpago"};
+const $=s=>document.querySelector(s),sleep=ms=>new Promise(r=>setTimeout(r,ms));
+let S={},tk=0,mute=false;
+const shuf=a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
+const pick=n=>shuf(P).slice(0,n);
+const colsFor=n=>n<=9?3:n<=16?4:n<=20?5:6;
+const rnd=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+function sfx(f,d=.12,t='sine'){if(mute)return;try{const c=sfx.c||(sfx.c=new(window.AudioContext||window.webkitAudioContext)()),o=c.createOscillator(),g=c.createGain();o.type=t;o.frequency.value=f;g.gain.value=.07;g.gain.exponentialRampToValueAtTime(.001,c.currentTime+d);o.connect(g);g.connect(c.destination);o.start();o.stop(c.currentTime+d)}catch(e){}}
+const buzz=p=>{try{navigator.vibrate&&navigator.vibrate(p)}catch(e){}};
+const good=()=>{sfx(660);setTimeout(()=>sfx(880),90);buzz(25)};
+const bad=()=>{sfx(170,.3,'sawtooth');buzz([40,60,40])};
+function best(m,v){try{const k='mf_'+m;if(v!=null&&v>(+localStorage.getItem(k)||0))localStorage.setItem(k,v);return +localStorage.getItem(k)||0}catch(e){return v||0}}
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('on',s.id===id));window.scrollTo(0,0);
+  if(id==='menu')for(const m in NAMES){const b=best(m);const el=$('#b-'+m);if(el)el.innerHTML=b?'Recorde<br><b>'+b+'</b>':''}}
+function msg(t){$('#msg').textContent=t}
+function bar(ms){const b=$('#bar');b.style.transition='none';b.style.width=ms?'100%':'0%';if(ms){b.offsetWidth;b.style.transition='width '+ms+'ms linear';b.style.width='0%'}}
+function hud(){$('#lv').textContent=S.lv;$('#sc').textContent=S.sc;
+  $('#l3').textContent=S.m==='pairs'?'JOGADAS':'VIDAS';
+  $('#lf').textContent=S.m==='pairs'?S.moves:'❤️'.repeat(Math.max(0,S.lives))+'🖤'.repeat(Math.max(0,3-S.lives))}
+function mk(it,up){const d=document.createElement('div');d.className='card'+(up?' up':'');d.innerHTML='<div class="in"><div class="f bk">?</div><div class="f ft"><b>'+it[0]+'</b><small>'+it[1]+'</small></div></div>';return d}
+function grid(arr,up){const b=$('#board'),c=colsFor(arr.length);b.innerHTML='';b.style.gridTemplateColumns='repeat('+c+',1fr)';b.style.maxWidth=c*120+'px';
+  return arr.map(it=>{const d=mk(it,up);b.appendChild(d);return d})}
+function clearInput(){$('#answer').hidden=true;$('#ans').value='';$('#ans').blur()}
+
+/* ---------- campo de resposta reutilizável (resolve com string, '' ou null=tempo esgotado) ---------- */
+function askNumber(limit){
+  const w=$('#answer'),inp=$('#ans'),btn=$('#ansGo');
+  w.hidden=false;inp.value='';inp.disabled=false;btn.disabled=false;
+  setTimeout(()=>{if(!w.hidden)inp.focus()},60);
+  return new Promise(res=>{
+    let done=false,tid=null;
+    const fin=v=>{if(done)return;done=true;clearTimeout(tid);inp.onkeydown=null;btn.onclick=null;res(v)};
+    const submit=()=>{const v=inp.value.trim();if(!v){inp.focus();return}fin(v)};
+    inp.oninput=()=>{const c=inp.value.replace(/\D/g,'');if(c!==inp.value)inp.value=c};
+    inp.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();submit()}};
+    btn.onclick=submit;
+    if(limit)tid=setTimeout(()=>fin(null),limit);
+  });
+}
+const same=(a,b)=>a!=null&&a!==''&&Number(a)===Number(b);
+
+function start(m){tk++;S={m,lv:1,sc:0,lives:3,moves:0};$('#ttl').textContent=NAMES[m];show('game');
+  $('#words').hidden=true;$('#go').hidden=true;$('#qbox').hidden=true;clearInput();hud();level()}
+function level(){({pairs,recall,imp,numbers,math})[S.m]()}
+function over(){tk++;const b=best(S.m,S.sc);$('#es').textContent=S.sc;
+  $('#ei').textContent=NAMES[S.m]+' · Nível '+S.lv+' · Recorde: '+b;show('end')}
+
+/* ============================ PARES ============================ */
+async function pairs(){
+  const t=tk,pn=[3,4,6,8,10,12][Math.min(S.lv-1,5)],its=pick(pn),arr=shuf([...its,...its]);
+  S.moves=0;hud();$('#words').hidden=true;$('#qbox').hidden=true;clearInput();
+  const cs=grid(arr,true),T=1400+pn*350;msg('Memorize as cartas!');bar(T);await sleep(T);if(t!==tk)return;
+  cs.forEach(c=>c.classList.remove('up'));bar(0);msg('Encontre os pares');
+  let a=null,lock=false,found=0;
+  cs.forEach((c,i)=>c.onclick=async()=>{
+    if(lock||t!==tk||c.classList.contains('up'))return;
+    sfx(440,.06);c.classList.add('up');
+    if(a===null){a=i;return}
+    const b=a;a=null;S.moves++;hud();
+    if(arr[b][0]===arr[i][0]){
+      good();S.sc+=100;found++;cs[b].classList.add('ok');c.classList.add('ok');hud();
+      if(found===pn){S.sc+=50*S.lv;msg('Nível completo! 🎉');hud();await sleep(1300);if(t!==tk)return;S.lv++;level()}
+    }else{
+      lock=true;bad();cs[b].classList.add('no');c.classList.add('no');await sleep(850);if(t!==tk)return;
+      [cs[b],c].forEach(x=>x.classList.remove('up','no'));lock=false}
+  });
+}
+
+/* ======================= QUEM ESTAVA LÁ? ======================= */
+async function recall(){
+  const t=tk,n=Math.min(2+S.lv,12),its=pick(n+Math.min(n+2,10)),tgt=its.slice(0,n);
+  hud();$('#qbox').hidden=true;clearInput();
+  const w=$('#words'),go=$('#go');w.hidden=true;go.hidden=true;
+  grid(tgt,true);const T=2200+n*900;msg('Memorize os objetos!');bar(T);await sleep(T);if(t!==tk)return;
+  $('#board').innerHTML='';bar(0);msg('Quais objetos você viu?');
+  const sel=new Set(),bs=new Map();let done=false;w.innerHTML='';w.hidden=false;
+  shuf(its).forEach(it=>{const b=document.createElement('button');b.className='chip';b.textContent=it[1];
+    b.onclick=()=>{if(done)return;sfx(520,.05);b.classList.toggle('sel');sel.has(it)?sel.delete(it):sel.add(it)};
+    bs.set(it,b);w.appendChild(b)});
+  go.hidden=false;go.textContent='Confirmar';
+  go.onclick=async()=>{
+    if(done){if(t!==tk)return;S.lives<=0?over():level();return}
+    done=true;let hit=0,wrong=0,miss=0;
+    its.forEach(it=>{const b=bs.get(it),isT=tgt.includes(it),s=sel.has(it);b.classList.remove('sel');
+      if(isT&&s){hit++;b.classList.add('ok')}else if(s){wrong++;b.classList.add('no')}else if(isT){miss++;b.classList.add('miss')}});
+    const gain=Math.max(0,hit*100-wrong*60);S.sc+=gain;
+    if(!wrong&&!miss){good();S.lv++;msg('Perfeito! +'+gain+' 🎉')}
+    else{bad();S.lives--;msg(hit+' certos · '+wrong+' errados · '+miss+' esquecidos')}
+    hud();go.textContent=S.lives<=0?'Ver resultado':'Próxima rodada';
+  };
+}
+
+/* ========================= A IMPOSTORA ========================= */
+async function imp(){
+  const t=tk,n=[6,8,9,12,12,15,16,20][Math.min(S.lv-1,7)],its=pick(n+1),base=its.slice(0,n),extra=its[n];
+  hud();$('#words').hidden=true;$('#go').hidden=true;$('#qbox').hidden=true;clearInput();
+  let cs=grid(base,true);const T=2400+n*400;msg('Memorize as cartas!');bar(T);await sleep(T);if(t!==tk)return;
+  cs.forEach(c=>c.classList.remove('up'));bar(0);msg('Embaralhando…');await sleep(700);if(t!==tk)return;
+  const B=$('#board');B.classList.add('shake');sfx(300,.5,'triangle');await sleep(1000);B.classList.remove('shake');if(t!==tk)return;
+  const k=Math.random()*n|0,arr=shuf(base).map((x,i)=>i===k?extra:x);
+  cs=grid(arr,false);await sleep(150);cs.forEach(c=>c.classList.add('up'));
+  msg('Qual carta é a impostora? Toque nela!');const t0=Date.now();let lock=false;
+  cs.forEach((c,i)=>c.onclick=async()=>{
+    if(lock||t!==tk)return;lock=true;
+    if(i===k){const g=100+Math.max(0,Math.round(150-(Date.now()-t0)/100));good();c.classList.add('ok');S.sc+=g;S.lv++;hud();msg('Achou! +'+g+' 🎉');await sleep(1500)}
+    else{bad();c.classList.add('no');cs[k].classList.add('ok');S.lives--;hud();msg('Ops! A impostora era a verde.');await sleep(2000)}
+    if(t!==tk)return;S.lives<=0?over():level();
+  });
+}
+
+/* =========================== NÚMEROS =========================== */
+async function numbers(){
+  const t=tk;
+  hud();$('#words').hidden=true;$('#go').hidden=true;$('#board').innerHTML='';
+  const digits=Math.min(2+S.lv,9);
+  let n=String(rnd(1,9));
+  for(let i=1;i<digits;i++)n+=String(rnd(0,9));
+  const showT=700+digits*480;
+  const q=$('#qbox');q.hidden=false;q.classList.add('num');q.textContent=n;
+  msg('Memorize o número!');bar(showT);
+  await sleep(showT);if(t!==tk)return;
+  q.textContent='?';q.classList.remove('num');bar(0);msg('Digite o número que você viu');
+  const v=await askNumber(0);           // sem limite de tempo para digitar
+  clearInput();if(t!==tk)return;
+  if(same(v,n)){
+    good();const g=digits*60+100;S.sc+=g;S.lv++;hud();msg('Perfeito! +'+g+' 🎉');
+    await sleep(1100);if(t!==tk)return;level();
+  }else{
+    bad();S.lives--;hud();msg('Era '+n+' — você digitou '+(v||'nada'));
+    await sleep(2000);if(t!==tk)return;S.lives<=0?over():level();
+  }
+}
+
+/* ====================== CÁLCULO RELÂMPAGO ====================== */
+function mathQ(lv){
+  let a,b,op,ans;
+  if(lv<=2){a=rnd(1,9);b=rnd(1,9);op='+';ans=a+b}
+  else if(lv<=4){
+    if(Math.random()<.5){a=rnd(5,25);b=rnd(5,25);op='+';ans=a+b}
+    else{a=rnd(10,30);b=rnd(1,a-1);op='−';ans=a-b}
+  }else if(lv<=6){
+    const m=Math.random();
+    if(m<.34){a=rnd(10,50);b=rnd(10,50);op='+';ans=a+b}
+    else if(m<.67){a=rnd(20,60);b=rnd(1,a-1);op='−';ans=a-b}
+    else{a=rnd(2,9);b=rnd(2,9);op='×';ans=a*b}
+  }else{
+    const m=Math.random();
+    if(m<.25){a=rnd(20,99);b=rnd(20,99);op='+';ans=a+b}
+    else if(m<.5){a=rnd(30,99);b=rnd(1,a-1);op='−';ans=a-b}
+    else if(m<.8){a=rnd(3,12);b=rnd(3,12);op='×';ans=a*b}
+    else{b=rnd(2,9);ans=rnd(2,9);a=b*ans;op='÷'}
+  }
+  return {q:a+' '+op+' '+b,ans};
+}
+async function math(){
+  const t=tk;
+  hud();$('#words').hidden=true;$('#go').hidden=true;$('#board').innerHTML='';
+  const {q,ans}=mathQ(S.lv);
+  const qb=$('#qbox');qb.hidden=false;qb.classList.remove('num');qb.textContent=q+' = ?';
+  msg('Responda antes do tempo acabar!');
+  const limit=Math.max(2600,8200-S.lv*480);
+  bar(limit);
+  const v=await askNumber(limit);
+  clearInput();if(t!==tk)return;bar(0);
+
+  if(v===null){
+    bad();S.lives--;hud();msg('⏰ Tempo esgotado! A resposta era '+ans);
+    await sleep(1800);if(t!==tk)return;S.lives<=0?over():level();return;
+  }
+  if(same(v,ans)){
+    good();const g=100+S.lv*15;S.sc+=g;S.lv++;hud();msg('Certo! +'+g+' 🎉');
+    await sleep(800);if(t!==tk)return;level();
+  }else{
+    bad();S.lives--;hud();msg('Errado! '+q+' = '+ans);
+    await sleep(1800);if(t!==tk)return;S.lives<=0?over():level();
+  }
+}
+
+document.querySelectorAll('.mode').forEach(b=>b.onclick=()=>start(b.dataset.m));
+$('#back').onclick=()=>{tk++;clearInput();show('menu')};
+$('#tomenu').onclick=()=>{clearInput();show('menu')};
+$('#again').onclick=()=>start(S.m);
+$('#mt').onclick=()=>{mute=!mute;$('#mt').textContent=mute?'🔇 Som: desligado':'🔊 Som: ligado'};
+show('menu');
+</script></body></html>
